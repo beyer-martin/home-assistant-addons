@@ -12,17 +12,18 @@ init_environment() {
     local cache_dir="/data/.cache"
     local state_dir="/data/.local/state"
     local claude_config_dir="/data/.config/claude"
+    local happy_config_dir="/data/.config/happy"
 
     bashio::log.info "Initializing Claude Code environment in /data..."
 
     # Create all required directories
-    if ! mkdir -p "$data_home" "$config_dir/claude" "$cache_dir" "$state_dir" "/data/.local"; then
+    if ! mkdir -p "$data_home" "$config_dir/claude" "$config_dir/happy" "$cache_dir" "$state_dir" "/data/.local"; then
         bashio::log.error "Failed to create directories in /data"
         exit 1
     fi
 
     # Set permissions
-    chmod 755 "$data_home" "$config_dir" "$cache_dir" "$state_dir" "$claude_config_dir"
+    chmod 755 "$data_home" "$config_dir" "$cache_dir" "$state_dir" "$claude_config_dir" "$happy_config_dir"
 
     # Set XDG and application environment variables
     export HOME="$data_home"
@@ -30,18 +31,22 @@ init_environment() {
     export XDG_CACHE_HOME="$cache_dir"
     export XDG_STATE_HOME="$state_dir"
     export XDG_DATA_HOME="/data/.local/share"
-    
+
     # Claude-specific environment variables
     export ANTHROPIC_CONFIG_DIR="$claude_config_dir"
     export ANTHROPIC_HOME="/data"
+
+    # Happy-specific environment variables
+    export HAPPY_HOME_DIR="$happy_config_dir"
 
     # Migrate any existing authentication files from legacy locations
     migrate_legacy_auth_files "$claude_config_dir"
 
     bashio::log.info "Environment initialized:"
     bashio::log.info "  - Home: $HOME"
-    bashio::log.info "  - Config: $XDG_CONFIG_HOME" 
+    bashio::log.info "  - Config: $XDG_CONFIG_HOME"
     bashio::log.info "  - Claude config: $ANTHROPIC_CONFIG_DIR"
+    bashio::log.info "  - Happy config: $HAPPY_HOME_DIR"
     bashio::log.info "  - Cache: $XDG_CACHE_HOME"
 }
 
