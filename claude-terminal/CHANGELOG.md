@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.5.0
+
+### ✨ New Features
+- **Home Assistant MCP Integration**: Automatic connection to Home Assistant's Model Context Protocol Server
+  - Added configuration option to enable MCP integration
+  - Auto-configures Claude Code to connect to HA MCP Server via SSE transport
+  - Allows Claude to directly query and control Home Assistant entities
+  - Uses Supervisor API token for secure authentication
+  - Creates project-level `.mcp.json` configuration in `/config` directory
+  - Optional custom MCP server URL override
+  - Includes setup script with connectivity testing and status commands
+
+### 🛠️ Improvements
+- **Enhanced documentation**: Added comprehensive MCP setup and usage guide
+- **Better MCP diagnostics**: New setup script supports status checking and connection testing
+- **Seamless integration**: MCP auto-configuration runs on startup if enabled
+- **Smart home control**: Direct interaction with Home Assistant entities through Claude
+
 ## 1.4.0
 
 ### ✨ New Features
@@ -12,7 +30,7 @@
   - Full E2E encryption for secure mobile coding
 
 ### 🛠️ Improvements
-- **Enhanced session picker**: Expanded options from 7 to 9
+- **Enhanced session picker**: Expanded options to include Happy mobile client
   - Option 6: Launch Happy with QR code for mobile connection
   - Option 7: Start Happy daemon for persistent background service
 - **Updated documentation**: Added Happy mobile client usage instructions
