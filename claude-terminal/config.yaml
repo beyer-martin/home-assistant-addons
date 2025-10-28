@@ -32,8 +32,12 @@ options:
   auto_launch_claude:
     name: "Auto-launch Claude"
     description: "Auto-start Claude on terminal open (disable for session picker)"
+  auto_start_happy_daemon:
+    name: "Auto-start Happy Daemon"
+    description: "Automatically start Happy daemon in background for mobile connections"
 schema:
   auto_launch_claude: bool?
+  auto_start_happy_daemon: bool?
 
 # Volume mappings for file access
 map:

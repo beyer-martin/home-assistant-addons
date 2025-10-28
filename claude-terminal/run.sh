@@ -149,6 +149,41 @@ get_claude_launch_command() {
     fi
 }
 
+# Start Happy daemon in background if enabled
+start_happy_daemon_if_enabled() {
+    local auto_start_happy
+
+    # Get configuration value, default to false
+    auto_start_happy=$(bashio::config 'auto_start_happy_daemon' 'false')
+
+    if [ "$auto_start_happy" = "true" ]; then
+        bashio::log.info "Auto-start Happy daemon enabled"
+
+        # Check if happy is available
+        if command -v happy &> /dev/null; then
+            bashio::log.info "Starting Happy daemon in background..."
+
+            # Start happy daemon in background
+            # Redirect output to prevent interference with terminal
+            nohup happy daemon > /data/.local/happy-daemon.log 2>&1 &
+            local happy_pid=$!
+
+            # Wait a moment to check if it started successfully
+            sleep 2
+
+            if kill -0 $happy_pid 2>/dev/null; then
+                bashio::log.info "Happy daemon started successfully (PID: $happy_pid)"
+                bashio::log.info "Mobile clients can now connect. Check logs at /data/.local/happy-daemon.log"
+            else
+                bashio::log.warning "Happy daemon may have failed to start. Check /data/.local/happy-daemon.log for details"
+            fi
+        else
+            bashio::log.error "Happy CLI not found. Please ensure happy-coder is installed correctly."
+        fi
+    else
+        bashio::log.info "Auto-start Happy daemon: disabled"
+    fi
+}
 
 # Start main web terminal
 start_web_terminal() {
@@ -196,6 +231,11 @@ main() {
     init_environment
     install_tools
     setup_session_picker
+
+    # Start Happy daemon in background if configured
+    start_happy_daemon_if_enabled
+
+    # Start web terminal (this blocks, so must be last)
     start_web_terminal
 }
 
