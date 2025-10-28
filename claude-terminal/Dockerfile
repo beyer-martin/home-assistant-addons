@@ -21,6 +21,13 @@ RUN apk add --no-cache \
         break || \
         (echo "Attempt $i failed, retrying in 10 seconds..." && sleep 10); \
     done \
+    && for i in 1 2 3; do \
+        echo "Attempt $i: Installing Happy Coder CLI..." && \
+        npm install -g happy-coder && \
+        echo "Successfully installed Happy Coder CLI" && \
+        break || \
+        (echo "Attempt $i failed, retrying in 10 seconds..." && sleep 10); \
+    done \
     && npm cache clean --force
 
 # Create directory for Claude configuration and set working directory

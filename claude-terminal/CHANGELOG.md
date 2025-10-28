@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.4.0
+
+### ✨ New Features
+- **Happy Mobile Client Integration**: Added support for Happy mobile client with persistent authentication
+  - Installed `happy-coder` CLI alongside Claude Code
+  - Persistent config storage in `/data/.config/happy` (survives restarts)
+  - Added Happy launch option to session picker (option 6)
+  - Added Happy daemon mode for background service (option 7)
+  - QR code pairing for mobile device connection
+  - Full E2E encryption for secure mobile coding
+
+### 🛠️ Improvements
+- **Enhanced session picker**: Expanded options from 7 to 9
+  - Option 6: Launch Happy with QR code for mobile connection
+  - Option 7: Start Happy daemon for persistent background service
+- **Updated documentation**: Added Happy mobile client usage instructions
+- **Better mobile workflow**: Code on-the-go with full Claude capabilities
+
 ## 1.3.2
 
 ### 🐛 Bug Fixes

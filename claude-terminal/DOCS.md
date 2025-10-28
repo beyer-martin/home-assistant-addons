@@ -38,14 +38,28 @@ node /usr/local/bin/claude
 
 The terminal starts directly in your `/config` directory, giving you immediate access to all your Home Assistant configuration files. This makes it easy to get help with your configuration, create automations, and troubleshoot issues.
 
+### Happy Mobile Client
+
+Access Claude from your mobile device using the Happy mobile client:
+
+1. From the session picker, choose option **6** to launch Happy with QR code
+2. Scan the QR code with the Happy mobile app
+3. Start coding on your phone with Claude's full capabilities
+
+You can also run Happy in daemon mode (option **7**) to keep it running in the background for persistent mobile access.
+
+Happy authentication is stored in `/data/.config/happy` and persists across add-on restarts.
+
 ## Features
 
 - **Web Terminal**: Access a full terminal environment via your browser
 - **Auto-Launching**: Claude starts automatically when you open the terminal
 - **Claude AI**: Access Claude's AI capabilities for programming, troubleshooting and more
+- **Happy Mobile Client**: Connect to Claude from your mobile device with QR code pairing
 - **Direct Config Access**: Terminal starts in `/config` for immediate access to all Home Assistant files
 - **Simple Setup**: Uses OAuth for easy authentication
 - **Home Assistant Integration**: Access directly from your dashboard
+- **Persistent Authentication**: All credentials stored securely and persist across restarts
 
 ## Troubleshooting
 

@@ -9,7 +9,7 @@ To add this repository to your Home Assistant instance:
 1. Go to **Settings** → **Add-ons** → **Add-on Store**
 2. Click the three dots menu in the top right corner
 3. Select **Repositories**
-4. Add the URL: `https://github.com/heytcass/home-assistant-addons`
+4. Add the URL: `https://github.com/beyer-martin/home-assistant-addons`
 5. Click **Add**
 
 ## Add-ons
@@ -21,8 +21,10 @@ A web-based terminal interface with Claude Code CLI pre-installed. This add-on p
 Features:
 - Web terminal access through your Home Assistant UI
 - Pre-installed Claude Code CLI that launches automatically
+- Happy mobile client support for coding on your phone
 - Direct access to your Home Assistant config directory
 - No configuration needed (uses OAuth)
+- Persistent authentication across restarts
 - Access to Claude's complete capabilities including:
   - Code generation and explanation
   - Debugging assistance
