@@ -27,7 +27,8 @@ Your OAuth credentials are stored in the `/config/claude-config` directory and w
 The add-on can automatically connect Claude Code to your Home Assistant instance via the Model Context Protocol (MCP). This allows Claude to directly interact with your Home Assistant entities, automations, and services.
 
 **Prerequisites:**
-1. Install the **Model Context Protocol Server** integration in Home Assistant:
+1. **Home Assistant 2025.2 or later** is required
+2. Install the **Model Context Protocol Server** integration in Home Assistant:
    - Go to Settings → Devices & Services → Add Integration
    - Search for "Model Context Protocol Server"
    - Configure which entities/services to expose to Claude
@@ -35,13 +36,26 @@ The add-on can automatically connect Claude Code to your Home Assistant instance
 **Configuration Options:**
 
 - **Enable MCP Integration**: Turn on automatic MCP configuration (default: disabled)
-- **MCP Server URL**: Override the default server URL if needed (default: `http://supervisor/core/mcp_server/sse`)
+- **MCP Server URL**: Override the auto-discovered server URL if needed
+  - Default: auto-discovery (tries common URLs)
+  - Manual example: `http://homeassistant.local:8123/mcp_server/sse`
 
 **To Enable:**
-1. Enable the "Model Context Protocol Server" integration in Home Assistant
-2. In the Claude Terminal add-on configuration, enable "Enable MCP Integration"
-3. Restart the add-on
-4. Open the terminal and check MCP status with: `/mcp`
+1. Ensure Home Assistant 2025.2+ is installed
+2. Enable the "Model Context Protocol Server" integration in Home Assistant
+3. In the Claude Terminal add-on configuration, enable "Enable MCP Integration"
+4. Restart the add-on
+5. Check the add-on logs to verify MCP connection
+6. Open the terminal and check MCP status with: `/mcp`
+
+**Troubleshooting:**
+
+If you see "HTTP 404" errors in the logs:
+- Verify Home Assistant version is 2025.2 or later
+- Confirm the MCP Server integration is installed and running
+- Check Settings → Devices & Services → Model Context Protocol Server
+- If using a custom Home Assistant URL or port, specify it manually in "MCP Server URL"
+- The endpoint format is: `http://YOUR_HA_HOST:8123/mcp_server/sse`
 
 Once enabled, Claude will have access to Home Assistant tools for querying and controlling your smart home!
 

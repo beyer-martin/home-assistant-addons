@@ -15,7 +15,60 @@ NC='\033[0m' # No Color
 
 # Configuration
 MCP_CONFIG_FILE="/config/.mcp.json"
-DEFAULT_MCP_URL="http://supervisor/core/mcp_server/sse"
+
+# Function to discover Home Assistant URL
+get_home_assistant_url() {
+    # Try to get HA URL from Supervisor API
+    local ha_info
+    ha_info=$(curl -s -H "Authorization: Bearer ${SUPERVISOR_TOKEN}" \
+        http://supervisor/core/info 2>/dev/null)
+
+    if [ -n "$ha_info" ]; then
+        # Extract host and port from the info
+        local host="homeassistant.local"
+        local port="8123"
+
+        # Check if we can parse the actual values
+        if command -v jq &> /dev/null; then
+            port=$(echo "$ha_info" | jq -r '.data.port // 8123' 2>/dev/null || echo "8123")
+        fi
+
+        # Try common URLs
+        local urls=(
+            "http://homeassistant.local:${port}/mcp_server/sse"
+            "http://localhost:${port}/mcp_server/sse"
+            "http://supervisor/core/mcp_server/sse"
+        )
+
+        for url in "${urls[@]}"; do
+            if test_url_accessible "$url"; then
+                echo "$url"
+                return 0
+            fi
+        done
+    fi
+
+    # Default fallback
+    echo "http://homeassistant.local:8123/mcp_server/sse"
+}
+
+# Test if a URL is accessible
+test_url_accessible() {
+    local url=$1
+    local response
+
+    response=$(curl -s -w "%{http_code}" -o /dev/null \
+        -H "Authorization: Bearer ${SUPERVISOR_TOKEN}" \
+        -H "Accept: text/event-stream" \
+        --max-time 3 \
+        "$url" 2>/dev/null || echo "000")
+
+    # 200 = OK, 401 = Unauthorized (but server exists), 403 = Forbidden (but server exists)
+    if [ "$response" = "200" ] || [ "$response" = "401" ] || [ "$response" = "403" ]; then
+        return 0
+    fi
+    return 1
+}
 
 # Main setup function
 setup_mcp_integration() {
@@ -30,9 +83,19 @@ setup_mcp_integration() {
         return 0
     fi
 
-    # Get MCP server URL (use custom or default)
+    # Get MCP server URL (use custom or discover)
     local mcp_url
-    mcp_url=$(bashio::config 'mcp_server_url' "$DEFAULT_MCP_URL")
+    local custom_url
+    custom_url=$(bashio::config 'mcp_server_url' '')
+
+    if [ -n "$custom_url" ]; then
+        mcp_url="$custom_url"
+        bashio::log.info "Using custom MCP server URL: ${mcp_url}"
+    else
+        bashio::log.info "Auto-discovering Home Assistant MCP server URL..."
+        mcp_url=$(get_home_assistant_url)
+        bashio::log.info "Discovered MCP server URL: ${mcp_url}"
+    fi
 
     bashio::log.info "Configuring MCP server connection to: ${mcp_url}"
 
@@ -69,13 +132,21 @@ test_mcp_server() {
         --max-time 5 \
         "$url" 2>/dev/null || echo "000")
 
-    if [ "$response" = "200" ] || [ "$response" = "401" ]; then
+    if [ "$response" = "200" ] || [ "$response" = "401" ] || [ "$response" = "403" ]; then
         # 200 = successful connection
-        # 401 = server is there but auth might need adjustment (still means server exists)
-        bashio::log.info "✓ MCP server is accessible"
+        # 401/403 = server exists but might need different auth
+        bashio::log.info "✓ MCP server is accessible (HTTP $response)"
         return 0
     else
         bashio::log.warning "MCP server returned HTTP $response"
+        if [ "$response" = "404" ]; then
+            bashio::log.warning "The MCP Server integration may not be installed or the endpoint URL is incorrect"
+            bashio::log.warning "Please ensure:"
+            bashio::log.warning "  1. Home Assistant 2025.2 or later is installed"
+            bashio::log.warning "  2. The 'Model Context Protocol Server' integration is added"
+            bashio::log.warning "  3. The integration is properly configured"
+            bashio::log.warning "If using a custom setup, specify the correct URL in add-on configuration"
+        fi
         return 1
     fi
 }
