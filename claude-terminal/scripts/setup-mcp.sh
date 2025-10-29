@@ -18,15 +18,16 @@ MCP_CONFIG_FILE="/config/.mcp.json"
 
 # Function to discover Home Assistant MCP Server URL
 get_home_assistant_url() {
-    # For add-ons, use Supervisor API to access HA Core services
-    # Try multiple possible Supervisor endpoint patterns
+    # Try multiple possible endpoints
+    # Home Assistant add-ons can access the core instance via homeassistant.local
     local urls=(
+        "http://homeassistant.local:8123/mcp_server/sse"
         "http://supervisor/core/api/mcp_server/sse"
         "http://supervisor/core/mcp_server/sse"
         "http://supervisor/mcp_server/sse"
     )
 
-    bashio::log.info "Discovering MCP Server endpoint via Supervisor API..."
+    bashio::log.info "Discovering MCP Server endpoint..."
 
     for url in "${urls[@]}"; do
         if test_url_accessible "$url"; then
@@ -36,9 +37,9 @@ get_home_assistant_url() {
         fi
     done
 
-    # Default to most likely endpoint
-    bashio::log.warning "Could not verify endpoint, using default: http://supervisor/core/api/mcp_server/sse"
-    echo "http://supervisor/core/api/mcp_server/sse"
+    # Default to most commonly working endpoint
+    bashio::log.warning "Could not verify endpoint, using default: http://homeassistant.local:8123/mcp_server/sse"
+    echo "http://homeassistant.local:8123/mcp_server/sse"
 }
 
 # Test if a URL is accessible
