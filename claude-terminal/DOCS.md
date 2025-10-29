@@ -32,31 +32,47 @@ The add-on can automatically connect Claude Code to your Home Assistant instance
    - Go to Settings → Devices & Services → Add Integration
    - Search for "Model Context Protocol Server"
    - Configure which entities/services to expose to Claude
+3. **Create a Long-Lived Access Token**:
+   - Go to your Profile (click your name in the bottom left)
+   - Scroll to "Security" section
+   - Under "Long-Lived Access Tokens", click "Create Token"
+   - Give it a name (e.g., "Claude Terminal MCP")
+   - **Copy the token immediately** (it's only shown once!)
+   - Keep it safe - you'll need it for the add-on configuration
 
 **Configuration Options:**
 
 - **Enable MCP Integration**: Turn on automatic MCP configuration (default: disabled)
+- **MCP Access Token**: **Required** - Paste your long-lived access token here (created above)
 - **MCP Server URL**: Override the auto-discovered server URL if needed
-  - Default: auto-discovery (tries homeassistant.local and Supervisor API)
+  - Default: auto-discovery (tries homeassistant.local:8123)
   - Manual example: `http://homeassistant.local:8123/mcp_server/sse`
 
 **To Enable:**
 1. Ensure Home Assistant 2025.2+ is installed
 2. Enable the "Model Context Protocol Server" integration in Home Assistant
-3. In the Claude Terminal add-on configuration, enable "Enable MCP Integration"
-4. Restart the add-on
-5. Check the add-on logs to verify MCP connection
-6. Open the terminal and check MCP status with: `/mcp`
+3. Create a long-lived access token (see Prerequisites above)
+4. In the Claude Terminal add-on configuration:
+   - Enable "Enable MCP Integration"
+   - Paste your access token in "MCP Access Token"
+5. Restart the add-on
+6. Check the add-on logs to verify MCP connection
+7. Open the terminal and check MCP status with: `/mcp`
 
 **Troubleshooting:**
 
-If you see "HTTP 404" errors in the logs:
-- Verify Home Assistant version is 2025.2 or later
-- Confirm the MCP Server integration is installed and running
-- Check Settings → Devices & Services → Model Context Protocol Server
-- The add-on tries both homeassistant.local:8123 and Supervisor API paths
-- If needed, manually specify the correct endpoint in "MCP Server URL"
-- Common endpoints: `http://homeassistant.local:8123/mcp_server/sse`
+If you see "Failed to reconnect to home-assistant":
+- **HTTP 401 Unauthorized**: Your access token is invalid or expired
+  - Create a new long-lived access token
+  - Update the add-on configuration with the new token
+  - Restart the add-on
+- **HTTP 404 Not Found**:
+  - Verify Home Assistant version is 2025.2 or later
+  - Confirm the MCP Server integration is installed and running
+  - Check Settings → Devices & Services → Model Context Protocol Server
+- **Token not configured**:
+  - Make sure you've pasted the access token in "MCP Access Token"
+  - The token field should not be empty
 
 Once enabled, Claude will have access to Home Assistant tools for querying and controlling your smart home!
 

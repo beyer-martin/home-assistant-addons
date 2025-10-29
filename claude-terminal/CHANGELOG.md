@@ -1,5 +1,27 @@
 # Changelog
 
+## 1.5.3
+
+### 🐛 Bug Fixes
+- **Fixed MCP authentication**: Resolved "Failed to reconnect to home-assistant" error
+  - SUPERVISOR_TOKEN cannot authenticate with MCP Server endpoint
+  - Now requires user-created long-lived access token from Home Assistant
+  - Added `mcp_access_token` configuration field (password type)
+  - Enhanced validation with clear error messages for missing/invalid tokens
+  - Updated test to verify HTTP 200 (successful auth) instead of accepting 401
+
+### 📝 Documentation
+- **Added token creation guide**: Step-by-step instructions in DOCS.md
+  - How to create long-lived access token in Home Assistant
+  - Where to paste the token in add-on configuration
+  - Troubleshooting for common auth errors (401, 404)
+
+### ⚠️ Breaking Change
+- **Configuration required**: MCP integration now requires manual token input
+  - Users must create a long-lived access token in Home Assistant
+  - Token must be pasted in "MCP Access Token" configuration field
+  - Add-on will not connect to MCP without valid token
+
 ## 1.5.2
 
 ### 🐛 Bug Fixes
