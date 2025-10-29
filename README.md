@@ -25,10 +25,12 @@ Features:
 - Direct access to your Home Assistant config directory
 - No configuration needed (uses OAuth)
 - Persistent authentication across restarts
+- Optional MCP integration for direct Home Assistant control
 - Access to Claude's complete capabilities including:
   - Code generation and explanation
   - Debugging assistance
   - Home Assistant automation help
+  - Smart home control via MCP
   - Learning resources
 
 [Documentation](claude-terminal/DOCS.md)

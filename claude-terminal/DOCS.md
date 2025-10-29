@@ -16,9 +16,34 @@ This add-on provides a web-based terminal with Claude Code CLI pre-installed, al
 
 ## Configuration
 
+### Basic Configuration
+
 No configuration is needed! The add-on uses OAuth authentication, so you'll be prompted to log in to your Anthropic account the first time you use it.
 
 Your OAuth credentials are stored in the `/config/claude-config` directory and will persist across add-on updates and restarts, so you won't need to log in again.
+
+### MCP Integration (Optional)
+
+The add-on can automatically connect Claude Code to your Home Assistant instance via the Model Context Protocol (MCP). This allows Claude to directly interact with your Home Assistant entities, automations, and services.
+
+**Prerequisites:**
+1. Install the **Model Context Protocol Server** integration in Home Assistant:
+   - Go to Settings → Devices & Services → Add Integration
+   - Search for "Model Context Protocol Server"
+   - Configure which entities/services to expose to Claude
+
+**Configuration Options:**
+
+- **Enable MCP Integration**: Turn on automatic MCP configuration (default: disabled)
+- **MCP Server URL**: Override the default server URL if needed (default: `http://supervisor/core/mcp_server/sse`)
+
+**To Enable:**
+1. Enable the "Model Context Protocol Server" integration in Home Assistant
+2. In the Claude Terminal add-on configuration, enable "Enable MCP Integration"
+3. Restart the add-on
+4. Open the terminal and check MCP status with: `/mcp`
+
+Once enabled, Claude will have access to Home Assistant tools for querying and controlling your smart home!
 
 ## Usage
 
@@ -35,6 +60,7 @@ node /usr/local/bin/claude
 - `claude "your prompt"` - Ask Claude a single question
 - `claude process myfile.py` - Have Claude analyze a file
 - `claude --editor` - Start an interactive editor session
+- `/mcp` - View connected MCP servers and available tools (when MCP is enabled)
 
 The terminal starts directly in your `/config` directory, giving you immediate access to all your Home Assistant configuration files. This makes it easy to get help with your configuration, create automations, and troubleshoot issues.
 
@@ -50,6 +76,18 @@ You can also run Happy in daemon mode (option **7**) to keep it running in the b
 
 Happy authentication is stored in `/data/.config/happy` and persists across add-on restarts.
 
+### Using MCP Tools
+
+When MCP integration is enabled, Claude has direct access to Home Assistant through specialized tools. You can:
+
+- Ask Claude to check the state of entities: *"What's the current temperature of my thermostat?"*
+- Control devices: *"Turn off the living room lights"*
+- Query history: *"Show me when the front door was last opened"*
+- Create automations: *"Help me create an automation that turns on lights at sunset"*
+- Troubleshoot: *"Why isn't my motion sensor triggering the automation?"*
+
+Claude will automatically use the appropriate MCP tools to interact with your Home Assistant instance.
+
 ## Features
 
 - **Web Terminal**: Access a full terminal environment via your browser
@@ -60,6 +98,7 @@ Happy authentication is stored in `/data/.config/happy` and persists across add-
 - **Simple Setup**: Uses OAuth for easy authentication
 - **Home Assistant Integration**: Access directly from your dashboard
 - **Persistent Authentication**: All credentials stored securely and persist across restarts
+- **MCP Integration**: Optional automatic connection to Home Assistant MCP Server for direct smart home control through Claude
 
 ## Troubleshooting
 

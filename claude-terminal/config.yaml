@@ -1,7 +1,7 @@
 ---
 name: "Claude Terminal"
-description: "Terminal interface for Claude Code CLI with mobile support via Happy"
-version: "1.4.1"
+description: "Terminal interface for Claude Code CLI with mobile support and Home Assistant MCP integration"
+version: "1.5.0"
 slug: "claude_terminal"
 init: false
 
@@ -35,9 +35,17 @@ options:
   auto_start_happy_daemon:
     name: "Auto-start Happy Daemon"
     description: "Automatically start Happy daemon in background for mobile connections"
+  enable_mcp_integration:
+    name: "Enable MCP Integration"
+    description: "Auto-configure connection to Home Assistant MCP Server"
+  mcp_server_url:
+    name: "MCP Server URL"
+    description: "Override MCP server URL (default: http://supervisor/core/mcp_server/sse)"
 schema:
   auto_launch_claude: bool?
   auto_start_happy_daemon: bool?
+  enable_mcp_integration: bool?
+  mcp_server_url: str?
 
 # Volume mappings for file access
 map:
