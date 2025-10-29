@@ -192,7 +192,7 @@ create_mcp_config() {
     bashio::log.info "Creating MCP configuration at ${MCP_CONFIG_FILE}..."
 
     # Create the .mcp.json configuration
-    # Claude Code requires stdio transport, so we use npx @homebase-id/mcp-proxy for SSE
+    # Claude Code requires stdio transport, so we use npx mcp-proxy for SSE
     # This bridges between Claude's stdio and Home Assistant's SSE endpoint
     cat > "$MCP_CONFIG_FILE" <<EOF
 {
@@ -201,7 +201,7 @@ create_mcp_config() {
       "command": "npx",
       "args": [
         "-y",
-        "@homebase-id/mcp-proxy"
+        "mcp-proxy"
       ],
       "env": {
         "SSE_URL": "${url}",
