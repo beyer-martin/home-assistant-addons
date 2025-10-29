@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.5.4
+
+### 🐛 Bug Fixes
+- **Fixed mcp-proxy npm package name**: Resolved "404 Not Found" error when installing mcp-proxy
+  - Changed from incorrect '@homebase-id/mcp-proxy' to correct 'mcp-proxy'
+  - Package is available at npmjs.com/package/mcp-proxy
+  - Properly handles SSE streaming timeout (exit code 28 is normal)
+  - Uses temp file to isolate HTTP status code from streaming data
+
+### 🛠️ Improvements
+- **Added debug script**: New /opt/scripts/debug-mcp.sh for troubleshooting MCP connectivity
+- **Better error handling**: Distinguishes between curl timeout (normal) and connection errors
+- **Debug logging**: Shows both curl exit code and HTTP status code for diagnostics
+
 ## 1.5.3
 
 ### 🐛 Bug Fixes
