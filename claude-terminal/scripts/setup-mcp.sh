@@ -123,24 +123,38 @@ test_mcp_server() {
 
     bashio::log.info "Testing MCP server connectivity..."
 
-    # SSE endpoints keep connections open, so we need to:
-    # 1. Use very short timeout
-    # 2. Kill curl after getting initial response
-    # 3. Check HTTP headers only (not body)
+    # SSE endpoints stream continuously, so curl will timeout (exit 28).
+    # We need to check the HTTP status code, not curl's exit code.
+    # Write status code to a temp file to avoid capturing streaming data
 
+    local status_file="/tmp/mcp_status_$$"
     local response
-    # Use --head to get headers only, or very short max-time
-    response=$(timeout 2 curl -s -w "%{http_code}" -o /dev/null \
+
+    # Run curl with timeout, discard body, save status code to file
+    # Exit code 28 (timeout) is expected for SSE endpoints
+    timeout 3 curl -s -o /dev/null -w "%{http_code}" \
         --max-time 2 \
         -H "Authorization: Bearer ${token}" \
         -H "Accept: text/event-stream" \
-        "$url" 2>/dev/null || echo "000")
+        "$url" > "$status_file" 2>/dev/null
 
-    # Clean up any non-numeric characters
+    # curl exit codes: 0=success, 28=timeout, others=error
+    local curl_exit=$?
+
+    # Read the status code from file
+    if [ -f "$status_file" ]; then
+        response=$(cat "$status_file")
+        rm -f "$status_file"
+    else
+        response="000"
+    fi
+
+    # Clean up - keep only first 3 digits
     response=$(echo "$response" | tr -cd '0-9' | head -c 3)
 
-    bashio::log.debug "HTTP response code: '$response'"
+    bashio::log.debug "Curl exit code: $curl_exit, HTTP status: '$response'"
 
+    # For SSE, timeout (exit 28) with HTTP 200 is success
     if [ "$response" = "200" ]; then
         bashio::log.info "✓ MCP server is accessible and authenticated (HTTP 200)"
         return 0
@@ -158,11 +172,14 @@ test_mcp_server() {
         bashio::log.warning "  3. The integration is properly configured"
         return 1
     elif [ -z "$response" ] || [ "$response" = "000" ]; then
-        bashio::log.warning "Could not connect to MCP server (timeout or connection refused)"
+        bashio::log.warning "Could not connect to MCP server"
+        if [ $curl_exit -ne 28 ]; then
+            bashio::log.warning "Curl error code: $curl_exit"
+        fi
         bashio::log.warning "Check that Home Assistant is running and accessible"
         return 1
     else
-        bashio::log.warning "MCP server returned unexpected HTTP $response"
+        bashio::log.warning "MCP server returned unexpected HTTP $response (curl exit: $curl_exit)"
         return 1
     fi
 }
