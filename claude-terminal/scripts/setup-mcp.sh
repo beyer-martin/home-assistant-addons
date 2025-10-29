@@ -147,22 +147,20 @@ create_mcp_config() {
     bashio::log.info "Creating MCP configuration at ${MCP_CONFIG_FILE}..."
 
     # Create the .mcp.json configuration
-    # Using project-scope configuration so it applies to all Claude sessions
+    # Claude Code requires stdio transport, so we use npx @homebase-id/mcp-proxy for SSE
+    # This bridges between Claude's stdio and Home Assistant's SSE endpoint
     cat > "$MCP_CONFIG_FILE" <<EOF
 {
   "mcpServers": {
     "home-assistant": {
-      "transport": {
-        "type": "sse",
-        "url": "${url}",
-        "headers": {
-          "Authorization": "Bearer ${SUPERVISOR_TOKEN}"
-        }
-      },
-      "metadata": {
-        "description": "Home Assistant MCP Server - Control and query your Home Assistant instance",
-        "configuredBy": "claude-terminal-addon",
-        "autoConfigured": true
+      "command": "npx",
+      "args": [
+        "-y",
+        "@homebase-id/mcp-proxy"
+      ],
+      "env": {
+        "SSE_URL": "${url}",
+        "API_ACCESS_TOKEN": "${SUPERVISOR_TOKEN}"
       }
     }
   }
@@ -174,8 +172,8 @@ EOF
 
     bashio::log.info "✓ MCP configuration created successfully"
     bashio::log.info "  - Server: home-assistant"
-    bashio::log.info "  - Transport: SSE (Server-Sent Events)"
-    bashio::log.info "  - URL: ${url}"
+    bashio::log.info "  - Transport: stdio via mcp-proxy (SSE bridge)"
+    bashio::log.info "  - SSE URL: ${url}"
     bashio::log.info ""
     bashio::log.info "You can now use Home Assistant tools in Claude Code!"
     bashio::log.info "Use '/mcp' command in Claude to view available MCP tools."
