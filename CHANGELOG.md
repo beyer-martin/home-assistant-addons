@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Documentation: Git commit guidelines requiring changelog updates
+- [Documentation] Git commit guidelines requiring changelog and config.yaml updates
 
 ## [1.4.0] - 2024-01-XX
 
