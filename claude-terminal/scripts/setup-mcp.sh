@@ -123,16 +123,26 @@ test_mcp_server() {
 
     bashio::log.info "Testing MCP server connectivity..."
 
-    # Try to connect to the MCP server endpoint with auth
+    # SSE endpoints keep connections open, so we need to:
+    # 1. Use very short timeout
+    # 2. Kill curl after getting initial response
+    # 3. Check HTTP headers only (not body)
+
     local response
-    response=$(curl -s -w "%{http_code}" -o /dev/null \
+    # Use --head to get headers only, or very short max-time
+    response=$(timeout 2 curl -s -w "%{http_code}" -o /dev/null \
+        --max-time 2 \
         -H "Authorization: Bearer ${token}" \
         -H "Accept: text/event-stream" \
-        --max-time 5 \
         "$url" 2>/dev/null || echo "000")
 
+    # Clean up any non-numeric characters
+    response=$(echo "$response" | tr -cd '0-9' | head -c 3)
+
+    bashio::log.debug "HTTP response code: '$response'"
+
     if [ "$response" = "200" ]; then
-        bashio::log.info "✓ MCP server is accessible and authenticated (HTTP $response)"
+        bashio::log.info "✓ MCP server is accessible and authenticated (HTTP 200)"
         return 0
     elif [ "$response" = "401" ]; then
         bashio::log.error "✗ MCP server authentication failed (HTTP 401)"
@@ -140,12 +150,16 @@ test_mcp_server() {
         bashio::log.error "Please create a new long-lived access token and update the add-on configuration"
         return 1
     elif [ "$response" = "404" ]; then
-        bashio::log.warning "MCP server returned HTTP $response"
+        bashio::log.warning "MCP server returned HTTP 404"
         bashio::log.warning "The MCP Server integration may not be installed or the endpoint URL is incorrect"
         bashio::log.warning "Please ensure:"
         bashio::log.warning "  1. Home Assistant 2025.2 or later is installed"
         bashio::log.warning "  2. The 'Model Context Protocol Server' integration is added"
         bashio::log.warning "  3. The integration is properly configured"
+        return 1
+    elif [ -z "$response" ] || [ "$response" = "000" ]; then
+        bashio::log.warning "Could not connect to MCP server (timeout or connection refused)"
+        bashio::log.warning "Check that Home Assistant is running and accessible"
         return 1
     else
         bashio::log.warning "MCP server returned unexpected HTTP $response"
