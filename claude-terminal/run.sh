@@ -125,6 +125,20 @@ setup_session_picker() {
     fi
 }
 
+# Setup MCP integration
+setup_mcp_integration() {
+    if [ -f "/opt/scripts/setup-mcp.sh" ]; then
+        chmod +x /opt/scripts/setup-mcp.sh
+        bashio::log.info "Setting up MCP integration..."
+
+        # Source the script and run setup
+        source /opt/scripts/setup-mcp.sh
+        setup_mcp_integration || bashio::log.warning "MCP setup encountered issues but continuing..."
+    else
+        bashio::log.warning "MCP setup script not found"
+    fi
+}
+
 # Legacy monitoring functions removed - using simplified /data approach
 
 # Determine Claude launch command based on configuration
@@ -231,6 +245,9 @@ main() {
     init_environment
     install_tools
     setup_session_picker
+
+    # Setup MCP integration
+    setup_mcp_integration
 
     # Start Happy daemon in background if configured
     start_happy_daemon_if_enabled
