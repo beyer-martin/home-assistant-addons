@@ -124,19 +124,31 @@ podman exec test-claude-dev chmod +x /opt/scripts/claude-session-picker.sh
 
 ### Git Commit Guidelines
 
-**IMPORTANT: Always update the CHANGELOG.md file with every commit.**
+**IMPORTANT: Always update both CHANGELOG.md and config.yaml with every commit.**
 
 When making changes to this repository:
-1. Document your changes in CHANGELOG.md under the appropriate version section
-2. Follow the format: `- [Category] Brief description of change`
-3. Common categories: `Feature`, `Fix`, `Enhancement`, `Documentation`, `Refactor`
-4. Include the changelog update in the same commit as your changes
+1. **Update CHANGELOG.md** - Document your changes under the appropriate version section
+   - Follow the format: `- [Category] Brief description of change`
+   - Common categories: `Feature`, `Fix`, `Enhancement`, `Documentation`, `Refactor`
+
+2. **Update config.yaml version** - Increment the version number in `claude-terminal/config.yaml`
+   - Use semantic versioning: MAJOR.MINOR.PATCH
+   - PATCH: Bug fixes and minor changes
+   - MINOR: New features, backward compatible
+   - MAJOR: Breaking changes
+
+3. Include both updates in the same commit as your changes
 
 Example changelog entry:
 ```markdown
 ## [Unreleased]
 - [Feature] Add session picker for Claude terminal
 - [Fix] Resolve credential persistence issue on restart
+```
+
+Example version update in config.yaml:
+```yaml
+version: "1.4.1"  # Incremented from 1.4.0
 ```
 
 ### Production Testing
