@@ -16,40 +16,29 @@ NC='\033[0m' # No Color
 # Configuration
 MCP_CONFIG_FILE="/config/.mcp.json"
 
-# Function to discover Home Assistant URL
+# Function to discover Home Assistant MCP Server URL
 get_home_assistant_url() {
-    # Try to get HA URL from Supervisor API
-    local ha_info
-    ha_info=$(curl -s -H "Authorization: Bearer ${SUPERVISOR_TOKEN}" \
-        http://supervisor/core/info 2>/dev/null)
+    # For add-ons, use Supervisor API to access HA Core services
+    # Try multiple possible Supervisor endpoint patterns
+    local urls=(
+        "http://supervisor/core/api/mcp_server/sse"
+        "http://supervisor/core/mcp_server/sse"
+        "http://supervisor/mcp_server/sse"
+    )
 
-    if [ -n "$ha_info" ]; then
-        # Extract host and port from the info
-        local host="homeassistant.local"
-        local port="8123"
+    bashio::log.info "Discovering MCP Server endpoint via Supervisor API..."
 
-        # Check if we can parse the actual values
-        if command -v jq &> /dev/null; then
-            port=$(echo "$ha_info" | jq -r '.data.port // 8123' 2>/dev/null || echo "8123")
+    for url in "${urls[@]}"; do
+        if test_url_accessible "$url"; then
+            bashio::log.info "Found working endpoint: $url"
+            echo "$url"
+            return 0
         fi
+    done
 
-        # Try common URLs
-        local urls=(
-            "http://homeassistant.local:${port}/mcp_server/sse"
-            "http://localhost:${port}/mcp_server/sse"
-            "http://supervisor/core/mcp_server/sse"
-        )
-
-        for url in "${urls[@]}"; do
-            if test_url_accessible "$url"; then
-                echo "$url"
-                return 0
-            fi
-        done
-    fi
-
-    # Default fallback
-    echo "http://homeassistant.local:8123/mcp_server/sse"
+    # Default to most likely endpoint
+    bashio::log.warning "Could not verify endpoint, using default: http://supervisor/core/api/mcp_server/sse"
+    echo "http://supervisor/core/api/mcp_server/sse"
 }
 
 # Test if a URL is accessible
