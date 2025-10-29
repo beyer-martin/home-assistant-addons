@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.5.1
+
+### 🐛 Bug Fixes
+- **Fixed MCP Server endpoint discovery**: Resolved HTTP 404 errors when connecting to Home Assistant MCP Server
+  - Implemented automatic endpoint discovery with multiple fallback URLs
+  - Corrected endpoint path from `/core/mcp_server/sse` to `/mcp_server/sse`
+  - Added intelligent URL testing (homeassistant.local, localhost, supervisor proxy)
+  - Enhanced error messages with specific troubleshooting steps for 404 errors
+  - Updated configuration description to reflect auto-discovery default
+
+### 🛠️ Improvements
+- **Better MCP troubleshooting**: Added comprehensive error messages and setup validation
+- **Flexible configuration**: Auto-discovery works out-of-the-box, manual override still available
+
 ## 1.5.0
 
 ### ✨ New Features
