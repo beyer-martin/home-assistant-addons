@@ -122,6 +122,23 @@ podman exec test-claude-dev chmod +x /opt/scripts/claude-session-picker.sh
 - **Test individual scripts**: `podman exec test-claude-dev /opt/scripts/script-name.sh`
 - **Volume contents**: `ls -la /tmp/test-config/` to verify persistence
 
+### Git Commit Guidelines
+
+**IMPORTANT: Always update the CHANGELOG.md file with every commit.**
+
+When making changes to this repository:
+1. Document your changes in CHANGELOG.md under the appropriate version section
+2. Follow the format: `- [Category] Brief description of change`
+3. Common categories: `Feature`, `Fix`, `Enhancement`, `Documentation`, `Refactor`
+4. Include the changelog update in the same commit as your changes
+
+Example changelog entry:
+```markdown
+## [Unreleased]
+- [Feature] Add session picker for Claude terminal
+- [Fix] Resolve credential persistence issue on restart
+```
+
 ### Production Testing
 - **Local Testing**: Use `run-addon` to test on localhost:7681
 - **Container Health**: Check logs with `podman logs <container-id>`
