@@ -161,21 +161,23 @@ start_happy_daemon_if_enabled() {
 
         # Check if happy is available
         if command -v happy &> /dev/null; then
-            bashio::log.info "Starting Happy daemon in background..."
+            bashio::log.info "Starting Happy daemon..."
 
-            # Start happy daemon in background
-            # Redirect output to prevent interference with terminal
-            nohup happy daemon > /data/.local/happy-daemon.log 2>&1 &
-            local happy_pid=$!
+            # Start happy daemon in detached mode
+            # The 'daemon start' command runs in background automatically
+            if happy daemon start > /data/.local/happy-daemon.log 2>&1; then
+                # Wait a moment for daemon to initialize
+                sleep 2
 
-            # Wait a moment to check if it started successfully
-            sleep 2
-
-            if kill -0 $happy_pid 2>/dev/null; then
-                bashio::log.info "Happy daemon started successfully (PID: $happy_pid)"
-                bashio::log.info "Mobile clients can now connect. Check logs at /data/.local/happy-daemon.log"
+                # Verify daemon is running using status command
+                if happy daemon status > /dev/null 2>&1; then
+                    bashio::log.info "Happy daemon started successfully"
+                    bashio::log.info "Mobile clients can now connect. Check status with: happy daemon status"
+                else
+                    bashio::log.warning "Happy daemon started but status check failed. Check /data/.local/happy-daemon.log for details"
+                fi
             else
-                bashio::log.warning "Happy daemon may have failed to start. Check /data/.local/happy-daemon.log for details"
+                bashio::log.error "Failed to start Happy daemon. Check /data/.local/happy-daemon.log for details"
             fi
         else
             bashio::log.error "Happy CLI not found. Please ensure happy-coder is installed correctly."

@@ -94,11 +94,11 @@ launch_happy() {
 }
 
 launch_happy_daemon() {
-    echo "🔄 Starting Happy daemon in background..."
-    echo "The daemon will keep running and allow mobile connections."
+    echo "🔄 Starting Happy daemon..."
+    echo "The daemon will run in background and allow mobile connections."
     echo ""
     sleep 1
-    exec happy daemon
+    exec happy daemon start
 }
 
 launch_bash_shell() {
