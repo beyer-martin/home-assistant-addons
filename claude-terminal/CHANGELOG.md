@@ -1,12 +1,25 @@
 # Changelog
 
+## 1.5.2
+
+### 🐛 Bug Fixes
+- **Fixed MCP configuration schema error**: Resolved "Does not adhere to MCP server configuration schema" error
+  - Claude Code requires stdio transport, but Home Assistant MCP uses SSE
+  - Implemented `@homebase-id/mcp-proxy` to bridge stdio to SSE transport
+  - Changed from direct SSE config to stdio command-based config
+  - Passes SSE_URL and API_ACCESS_TOKEN via environment variables to proxy
+
+### 🛠️ Improvements
+- **Verified endpoint discovery**: Confirmed `homeassistant.local:8123/mcp_server/sse` works in add-on environment
+- **Smart fallback**: Tries homeassistant.local first, then Supervisor API paths
+
 ## 1.5.1
 
 ### 🐛 Bug Fixes
 - **Fixed MCP Server endpoint discovery**: Resolved HTTP 404 errors when connecting to Home Assistant MCP Server
   - Implemented automatic endpoint discovery with multiple fallback URLs
   - Corrected endpoint path from `/core/mcp_server/sse` to `/mcp_server/sse`
-  - Added intelligent URL testing (homeassistant.local, localhost, supervisor proxy)
+  - Added intelligent URL testing (homeassistant.local, Supervisor API)
   - Enhanced error messages with specific troubleshooting steps for 404 errors
   - Updated configuration description to reflect auto-discovery default
 
