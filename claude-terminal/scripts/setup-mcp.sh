@@ -42,13 +42,12 @@ get_home_assistant_url() {
     echo "http://homeassistant.local:8123/mcp_server/sse"
 }
 
-# Test if a URL is accessible
+# Test if a URL is accessible (without token for discovery)
 test_url_accessible() {
     local url=$1
     local response
 
     response=$(curl -s -w "%{http_code}" -o /dev/null \
-        -H "Authorization: Bearer ${SUPERVISOR_TOKEN}" \
         -H "Accept: text/event-stream" \
         --max-time 3 \
         "$url" 2>/dev/null || echo "000")
@@ -89,54 +88,67 @@ setup_mcp_integration() {
 
     bashio::log.info "Configuring MCP server connection to: ${mcp_url}"
 
-    # Verify SUPERVISOR_TOKEN is available
-    if [ -z "$SUPERVISOR_TOKEN" ]; then
-        bashio::log.error "SUPERVISOR_TOKEN not found - cannot configure MCP"
+    # Get MCP access token from configuration
+    local access_token
+    access_token=$(bashio::config 'mcp_access_token' '')
+
+    if [ -z "$access_token" ]; then
+        bashio::log.error "MCP Access Token is required but not configured"
+        bashio::log.error "Please create a long-lived access token in Home Assistant:"
+        bashio::log.error "  1. Go to your Profile → Security"
+        bashio::log.error "  2. Scroll to 'Long-Lived Access Tokens'"
+        bashio::log.error "  3. Click 'Create Token' and give it a name (e.g., 'Claude Terminal MCP')"
+        bashio::log.error "  4. Copy the token and paste it in the add-on configuration"
+        bashio::log.error "  5. Restart the add-on"
         return 1
     fi
 
     # Test if MCP server is accessible
-    if ! test_mcp_server "$mcp_url"; then
+    if ! test_mcp_server "$mcp_url" "$access_token"; then
         bashio::log.warning "MCP server not accessible at ${mcp_url}"
         bashio::log.warning "Make sure the 'Model Context Protocol Server' integration is installed and configured in Home Assistant"
         return 0
     fi
 
     # Create MCP configuration
-    create_mcp_config "$mcp_url"
+    create_mcp_config "$mcp_url" "$access_token"
 
     bashio::log.info "MCP integration setup completed successfully!"
 }
 
-# Test if MCP server is accessible
+# Test if MCP server is accessible (with token for validation)
 test_mcp_server() {
     local url=$1
+    local token=$2
 
     bashio::log.info "Testing MCP server connectivity..."
 
-    # Try to connect to the MCP server endpoint
+    # Try to connect to the MCP server endpoint with auth
     local response
     response=$(curl -s -w "%{http_code}" -o /dev/null \
-        -H "Authorization: Bearer ${SUPERVISOR_TOKEN}" \
+        -H "Authorization: Bearer ${token}" \
         -H "Accept: text/event-stream" \
         --max-time 5 \
         "$url" 2>/dev/null || echo "000")
 
-    if [ "$response" = "200" ] || [ "$response" = "401" ] || [ "$response" = "403" ]; then
-        # 200 = successful connection
-        # 401/403 = server exists but might need different auth
-        bashio::log.info "✓ MCP server is accessible (HTTP $response)"
+    if [ "$response" = "200" ]; then
+        bashio::log.info "✓ MCP server is accessible and authenticated (HTTP $response)"
         return 0
-    else
+    elif [ "$response" = "401" ]; then
+        bashio::log.error "✗ MCP server authentication failed (HTTP 401)"
+        bashio::log.error "The access token is invalid or expired"
+        bashio::log.error "Please create a new long-lived access token and update the add-on configuration"
+        return 1
+    elif [ "$response" = "404" ]; then
         bashio::log.warning "MCP server returned HTTP $response"
-        if [ "$response" = "404" ]; then
-            bashio::log.warning "The MCP Server integration may not be installed or the endpoint URL is incorrect"
-            bashio::log.warning "Please ensure:"
-            bashio::log.warning "  1. Home Assistant 2025.2 or later is installed"
-            bashio::log.warning "  2. The 'Model Context Protocol Server' integration is added"
-            bashio::log.warning "  3. The integration is properly configured"
-            bashio::log.warning "If using a custom setup, specify the correct URL in add-on configuration"
-        fi
+        bashio::log.warning "The MCP Server integration may not be installed or the endpoint URL is incorrect"
+        bashio::log.warning "Please ensure:"
+        bashio::log.warning "  1. Home Assistant 2025.2 or later is installed"
+        bashio::log.warning "  2. The 'Model Context Protocol Server' integration is added"
+        bashio::log.warning "  3. The integration is properly configured"
+        return 1
+    else
+        bashio::log.warning "MCP server returned unexpected HTTP $response"
         return 1
     fi
 }
@@ -144,6 +156,7 @@ test_mcp_server() {
 # Create MCP configuration file
 create_mcp_config() {
     local url=$1
+    local token=$2
 
     bashio::log.info "Creating MCP configuration at ${MCP_CONFIG_FILE}..."
 
@@ -161,7 +174,7 @@ create_mcp_config() {
       ],
       "env": {
         "SSE_URL": "${url}",
-        "API_ACCESS_TOKEN": "${SUPERVISOR_TOKEN}"
+        "API_ACCESS_TOKEN": "${token}"
       }
     }
   }

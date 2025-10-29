@@ -38,6 +38,9 @@ options:
   enable_mcp_integration:
     name: "Enable MCP Integration"
     description: "Auto-configure connection to Home Assistant MCP Server"
+  mcp_access_token:
+    name: "MCP Access Token"
+    description: "Long-lived access token from Home Assistant (Profile → Security → Create Token)"
   mcp_server_url:
     name: "MCP Server URL"
     description: "Override MCP server URL (default: auto-discover). Example: http://homeassistant.local:8123/mcp_server/sse"
@@ -45,6 +48,7 @@ schema:
   auto_launch_claude: bool?
   auto_start_happy_daemon: bool?
   enable_mcp_integration: bool?
+  mcp_access_token: password?
   mcp_server_url: str?
 
 # Volume mappings for file access
