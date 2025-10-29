@@ -16,39 +16,29 @@ NC='\033[0m' # No Color
 # Configuration
 MCP_CONFIG_FILE="/config/.mcp.json"
 
-# Function to discover Home Assistant URL
+# Function to discover Home Assistant MCP Server URL
 get_home_assistant_url() {
-    # Try to get HA URL from Supervisor API
-    local ha_info
-    ha_info=$(curl -s -H "Authorization: Bearer ${SUPERVISOR_TOKEN}" \
-        http://supervisor/core/info 2>/dev/null)
+    # Try multiple possible endpoints
+    # Home Assistant add-ons can access the core instance via homeassistant.local
+    local urls=(
+        "http://homeassistant.local:8123/mcp_server/sse"
+        "http://supervisor/core/api/mcp_server/sse"
+        "http://supervisor/core/mcp_server/sse"
+        "http://supervisor/mcp_server/sse"
+    )
 
-    if [ -n "$ha_info" ]; then
-        # Extract host and port from the info
-        local host="homeassistant.local"
-        local port="8123"
+    bashio::log.info "Discovering MCP Server endpoint..."
 
-        # Check if we can parse the actual values
-        if command -v jq &> /dev/null; then
-            port=$(echo "$ha_info" | jq -r '.data.port // 8123' 2>/dev/null || echo "8123")
+    for url in "${urls[@]}"; do
+        if test_url_accessible "$url"; then
+            bashio::log.info "Found working endpoint: $url"
+            echo "$url"
+            return 0
         fi
+    done
 
-        # Try common URLs
-        local urls=(
-            "http://homeassistant.local:${port}/mcp_server/sse"
-            "http://localhost:${port}/mcp_server/sse"
-            "http://supervisor/core/mcp_server/sse"
-        )
-
-        for url in "${urls[@]}"; do
-            if test_url_accessible "$url"; then
-                echo "$url"
-                return 0
-            fi
-        done
-    fi
-
-    # Default fallback
+    # Default to most commonly working endpoint
+    bashio::log.warning "Could not verify endpoint, using default: http://homeassistant.local:8123/mcp_server/sse"
     echo "http://homeassistant.local:8123/mcp_server/sse"
 }
 
@@ -158,22 +148,20 @@ create_mcp_config() {
     bashio::log.info "Creating MCP configuration at ${MCP_CONFIG_FILE}..."
 
     # Create the .mcp.json configuration
-    # Using project-scope configuration so it applies to all Claude sessions
+    # Claude Code requires stdio transport, so we use npx @homebase-id/mcp-proxy for SSE
+    # This bridges between Claude's stdio and Home Assistant's SSE endpoint
     cat > "$MCP_CONFIG_FILE" <<EOF
 {
   "mcpServers": {
     "home-assistant": {
-      "transport": {
-        "type": "sse",
-        "url": "${url}",
-        "headers": {
-          "Authorization": "Bearer ${SUPERVISOR_TOKEN}"
-        }
-      },
-      "metadata": {
-        "description": "Home Assistant MCP Server - Control and query your Home Assistant instance",
-        "configuredBy": "claude-terminal-addon",
-        "autoConfigured": true
+      "command": "npx",
+      "args": [
+        "-y",
+        "@homebase-id/mcp-proxy"
+      ],
+      "env": {
+        "SSE_URL": "${url}",
+        "API_ACCESS_TOKEN": "${SUPERVISOR_TOKEN}"
       }
     }
   }
@@ -185,8 +173,8 @@ EOF
 
     bashio::log.info "✓ MCP configuration created successfully"
     bashio::log.info "  - Server: home-assistant"
-    bashio::log.info "  - Transport: SSE (Server-Sent Events)"
-    bashio::log.info "  - URL: ${url}"
+    bashio::log.info "  - Transport: stdio via mcp-proxy (SSE bridge)"
+    bashio::log.info "  - SSE URL: ${url}"
     bashio::log.info ""
     bashio::log.info "You can now use Home Assistant tools in Claude Code!"
     bashio::log.info "Use '/mcp' command in Claude to view available MCP tools."

@@ -1,7 +1,7 @@
 ---
 name: "Claude Terminal"
 description: "Terminal interface for Claude Code CLI with mobile support and Home Assistant MCP integration"
-version: "1.5.1"
+version: "1.5.2"
 slug: "claude_terminal"
 init: false
 

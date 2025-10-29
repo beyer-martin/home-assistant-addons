@@ -37,7 +37,7 @@ The add-on can automatically connect Claude Code to your Home Assistant instance
 
 - **Enable MCP Integration**: Turn on automatic MCP configuration (default: disabled)
 - **MCP Server URL**: Override the auto-discovered server URL if needed
-  - Default: auto-discovery (tries common URLs)
+  - Default: auto-discovery (tries homeassistant.local and Supervisor API)
   - Manual example: `http://homeassistant.local:8123/mcp_server/sse`
 
 **To Enable:**
@@ -54,8 +54,9 @@ If you see "HTTP 404" errors in the logs:
 - Verify Home Assistant version is 2025.2 or later
 - Confirm the MCP Server integration is installed and running
 - Check Settings → Devices & Services → Model Context Protocol Server
-- If using a custom Home Assistant URL or port, specify it manually in "MCP Server URL"
-- The endpoint format is: `http://YOUR_HA_HOST:8123/mcp_server/sse`
+- The add-on tries both homeassistant.local:8123 and Supervisor API paths
+- If needed, manually specify the correct endpoint in "MCP Server URL"
+- Common endpoints: `http://homeassistant.local:8123/mcp_server/sse`
 
 Once enabled, Claude will have access to Home Assistant tools for querying and controlling your smart home!
 
