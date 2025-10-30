@@ -194,6 +194,7 @@ create_mcp_config() {
     # Create the .mcp.json configuration
     # Claude Code requires stdio transport, so we use mcp-remote for SSE-to-stdio bridge
     # mcp-remote connects to SSE endpoints and provides stdio interface
+    # Use environment variable for token to avoid header parsing issues
     cat > "$MCP_CONFIG_FILE" <<EOF
 {
   "mcpServers": {
@@ -203,9 +204,13 @@ create_mcp_config() {
         "-y",
         "mcp-remote@^0.1.16",
         "${url}",
+        "--allow-http",
         "--header",
-        "Authorization: Bearer ${token}"
-      ]
+        "Authorization: Bearer \${HA_MCP_TOKEN}"
+      ],
+      "env": {
+        "HA_MCP_TOKEN": "${token}"
+      }
     }
   }
 }
