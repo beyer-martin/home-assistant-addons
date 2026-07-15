@@ -139,46 +139,78 @@ setup_mcp_integration() {
 
 # Legacy monitoring functions removed - using simplified /data approach
 
-# Determine Claude launch command based on configuration
-get_claude_launch_command() {
-    local remote_control_mode
-    local session_name
+# Log file used by the Remote Control background service
+REMOTE_CONTROL_LOG="/data/.local/remote-control.log"
 
-    # Get configuration values
+# Start Claude Remote Control as a persistent background service.
+#
+# This runs INDEPENDENTLY of the Web UI (ttyd), so the connection to
+# claude.ai/code and the mobile app stays alive even when the browser tab
+# is closed. The service is supervised: if it exits (e.g. before you have
+# logged in, or after a network drop), it restarts automatically. That means
+# once you run /login in the Web UI, it reconnects on its own within seconds.
+start_remote_control_daemon() {
+    local remote_control_mode
     remote_control_mode=$(bashio::config 'remote_control_mode' 'false')
+
+    if [ "$remote_control_mode" != "true" ]; then
+        bashio::log.info "Remote Control: disabled"
+        return 0
+    fi
+
+    local session_name
     session_name=$(bashio::config 'session_name' '')
 
+    mkdir -p /data/.local
+    : > "$REMOTE_CONTROL_LOG"
+
+    # Build the remote-control command, quoting the session name safely
+    local rc_cmd="claude remote-control"
+    if [ -n "$session_name" ]; then
+        rc_cmd="claude remote-control --name \"${session_name}\""
+    fi
+
+    bashio::log.info "Starting Claude Remote Control as a persistent background service"
+    bashio::log.info "  - Keeps running even when the Web UI / browser is closed"
+    bashio::log.info "  - Connect from the Claude mobile app or claude.ai/code"
+    bashio::log.info "  - Session URL / QR are written to: ${REMOTE_CONTROL_LOG}"
+    bashio::log.info "  - If you see auth errors, open the Web UI once and run: /login"
+
+    # Supervised background loop. A pseudo-terminal is allocated via 'script'
+    # because remote-control is a full-screen server that expects a TTY.
+    (
+        while true; do
+            echo "===== $(date) Starting Remote Control =====" >> "$REMOTE_CONTROL_LOG"
+            script -qfc "${rc_cmd}" /dev/null >> "$REMOTE_CONTROL_LOG" 2>&1
+            echo "===== $(date) Remote Control exited; retrying in 15s =====" >> "$REMOTE_CONTROL_LOG"
+            sleep 15
+        done
+    ) >/dev/null 2>&1 &
+
+    bashio::log.info "Remote Control service started (supervisor PID $!)"
+}
+
+# Determine the Claude launch command for the Web UI terminal (ttyd).
+# The Web UI always runs an interactive Claude session. In Remote Control mode
+# it just shows a note that the background service is running; the actual
+# Remote Control connection is handled by start_remote_control_daemon.
+get_claude_launch_command() {
+    local remote_control_mode
+    remote_control_mode=$(bashio::config 'remote_control_mode' 'false')
+
     if [ "$remote_control_mode" = "true" ]; then
-        # Remote Control mode: Start Claude in server mode for mobile access
-        bashio::log.info "Remote Control mode enabled - starting Claude server..."
-
-        local cmd="clear && echo '═══════════════════════════════════════════════════' && echo '🚀 Claude Code Remote Control Server' && echo '═══════════════════════════════════════════════════' && echo '' && echo 'Starting Remote Control server...' && echo '' && echo '📱 You can connect from:' && echo '   • Claude mobile app (scan QR code)' && echo '   • Browser: claude.ai/code' && echo '' && echo '⚠️  Requirements:' && echo '   • Pro/Max/Team/Enterprise subscription' && echo '   • OAuth authentication (run /login if needed)' && echo '' && echo 'Press spacebar to show/hide QR code' && echo '═══════════════════════════════════════════════════' && echo '' && sleep 2 && claude remote-control"
-
-        # Add session name if provided
-        if [ -n "$session_name" ]; then
-            cmd="${cmd} --name \"${session_name}\""
-        fi
-
-        echo "$cmd"
+        bashio::log.info "Web UI: interactive Claude (Remote Control runs in background)"
+        echo "clear && echo '═══════════════════════════════════════════════════' && echo '🚀 Remote Control is running in the BACKGROUND' && echo '═══════════════════════════════════════════════════' && echo '' && echo 'It stays connected even if you close this page.' && echo '' && echo '📱 Connect from: Claude mobile app or claude.ai/code' && echo '📄 Status / session URL: /data/.local/remote-control.log' && echo '' && echo 'ℹ️  Not connected yet? Run  /login  below, then it' && echo '    reconnects automatically within a few seconds.' && echo '═══════════════════════════════════════════════════' && echo '' && sleep 2 && claude"
     else
-        # Interactive mode: Normal Claude terminal
-        bashio::log.info "Interactive mode - starting Claude terminal..."
+        bashio::log.info "Web UI: interactive Claude terminal"
         echo "clear && echo '═══════════════════════════════════════════════════' && echo '🤖 Claude Code Terminal' && echo '═══════════════════════════════════════════════════' && echo '' && echo 'Welcome to Claude Code!' && echo '' && echo 'Starting Claude...' && echo '' && sleep 1 && claude"
     fi
 }
 
-# Start main web terminal
+# Start main web terminal (ttyd). This blocks and keeps the container alive.
 start_web_terminal() {
     local port=7681
-    local remote_control_mode
-    remote_control_mode=$(bashio::config 'remote_control_mode' 'false')
-
-    if [ "$remote_control_mode" = "true" ]; then
-        bashio::log.info "Starting Claude Code Remote Control server on port ${port}..."
-        bashio::log.info "Connect from your mobile device or browser at claude.ai/code"
-    else
-        bashio::log.info "Starting Claude Code interactive terminal on port ${port}..."
-    fi
+    bashio::log.info "Starting Claude Code Web UI terminal on port ${port}..."
 
     # Log environment information for debugging
     bashio::log.info "Environment: ANTHROPIC_CONFIG_DIR=${ANTHROPIC_CONFIG_DIR}, HOME=${HOME}"
@@ -217,6 +249,10 @@ main() {
 
     # Setup MCP integration
     setup_mcp_integration
+
+    # Start Remote Control as a persistent background service (if enabled).
+    # Runs independently of the Web UI so it survives closing the browser.
+    start_remote_control_daemon
 
     # Start web terminal with Claude Code (this blocks, so must be last)
     start_web_terminal

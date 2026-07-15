@@ -109,29 +109,38 @@ The terminal starts in your `/config` directory, giving you immediate access to 
 
 ### Remote Control Mode
 
-Enable **Remote Control Mode** in the add-on configuration to access Claude from your mobile device or browser.
+Enable **Remote Control Mode** in the add-on configuration to access Claude from your mobile device or browser. Remote Control runs as a **persistent background service** — it starts with the add-on and stays connected even when the Web UI / browser is closed.
 
 **How it works:**
-1. Enable "Remote Control Mode" in add-on configuration
+1. Enable "Remote Control Mode" in the add-on configuration
 2. Restart the add-on
-3. Open the web UI - you'll see a session URL and QR code
-4. Press spacebar to show/hide the QR code
+3. **First time only:** open the Web UI once and run `/login` to authenticate.
+   The background service reconnects automatically within a few seconds.
+4. Find your session in the Claude mobile app or at [claude.ai/code](https://claude.ai/code)
+
+You do **not** need to keep the Web UI open — the connection is maintained by a background service that survives closing the browser and auto-restarts if it drops.
 
 **Connect from your device:**
-- **Mobile app**: Scan the QR code with Claude mobile app ([iOS](https://apps.apple.com/app/claude-by-anthropic/id6473753684) / [Android](https://play.google.com/store/apps/details?id=com.anthropic.claude))
-- **Browser**: Open the session URL at [claude.ai/code](https://claude.ai/code)
-- **Session list**: Find your session by name in claude.ai/code
+- **Mobile app**: Open the Claude app ([iOS](https://apps.apple.com/app/claude-by-anthropic/id6473753684) / [Android](https://play.google.com/store/apps/details?id=com.anthropic.claude)), tap **Code**, and select your session
+- **Browser**: Open [claude.ai/code](https://claude.ai/code) and pick your session from the list
+- **Session name**: Set a "Session Name" in the config to identify it easily
+
+**Checking status / getting the session URL:**
+- The add-on log shows the service starting
+- Detailed status and the session URL are written to `/data/.local/remote-control.log`
+  (view it from the Web UI terminal with `cat /data/.local/remote-control.log`)
 
 **Requirements:**
 - Claude Pro, Max, Team, or Enterprise subscription
-- OAuth authentication (not API key)
-- Use `/login` in terminal if not authenticated
+- OAuth authentication (not API key) — run `/login` once in the Web UI
+- Remote Control enabled for your account/organization
 
 **Features:**
+- Persistent: stays connected without the Web UI open
+- Auto-reconnect: restarts automatically after login or a network drop
 - Full local environment access (filesystem, MCP servers, tools)
-- Work from both terminal and mobile/browser simultaneously
+- Work from terminal, browser, and mobile simultaneously
 - Send images and files from your phone
-- Survives network interruptions and reconnects automatically
 - All execution stays on your Home Assistant machine
 
 ### Using MCP Tools

@@ -17,6 +17,7 @@ RUN apk add --no-cache \
     libgcc \
     libstdc++ \
     ripgrep \
+    util-linux \
     && (npm config set registry https://registry.npmjs.org/ || true) \
     && (npm config set fetch-retries 3 || true) \
     && (npm config set fetch-retry-mintimeout 20000 || true) \

@@ -1,5 +1,24 @@
 # Changelog
 
+## 2.1.0
+
+### 🚀 Features
+- **Remote Control now runs as a persistent background service**:
+  - Previously Remote Control ran inside the Web UI (ttyd), so the connection
+    died as soon as you closed the browser tab
+  - It now runs as a supervised background daemon that starts with the add-on
+    and stays connected even when the Web UI is closed
+  - Automatically restarts if it exits, so after a first-time `/login` it
+    reconnects on its own within a few seconds — no add-on restart needed
+  - Session URL / QR and status are written to `/data/.local/remote-control.log`
+  - The Web UI now always opens an interactive Claude session (for `/login`,
+    status, and normal terminal use) regardless of Remote Control mode
+
+### 🛠️ Improvements
+- Added `util-linux` (`script`) to allocate a pseudo-terminal for the
+  background Remote Control server
+- Clearer startup logs and Web UI messaging explaining background operation
+
 ## 2.0.1
 
 ### 🐛 Bug Fixes
