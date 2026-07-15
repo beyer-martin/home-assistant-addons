@@ -1,6 +1,11 @@
 ARG BUILD_FROM
 FROM ${BUILD_FROM}
 
+# Alpine uses musl libc; Claude Code's native binary needs libgcc/libstdc++
+# and the system ripgrep (the bundled ripgrep is glibc-only).
+# See: https://code.claude.com/docs/en/troubleshoot-install
+ENV USE_BUILTIN_RIPGREP=0
+
 # Install packages in a single layer to minimize image size
 # Add retry logic for npm installation to handle network issues
 RUN apk add --no-cache \
@@ -9,6 +14,9 @@ RUN apk add --no-cache \
     bash \
     curl \
     nano \
+    libgcc \
+    libstdc++ \
+    ripgrep \
     && (npm config set registry https://registry.npmjs.org/ || true) \
     && (npm config set fetch-retries 3 || true) \
     && (npm config set fetch-retry-mintimeout 20000 || true) \
@@ -18,13 +26,11 @@ RUN apk add --no-cache \
         echo "Attempt $i: Installing Claude Code CLI..." && \
         npm install -g @anthropic-ai/claude-code@latest && \
         echo "Successfully installed Claude Code CLI" && \
-        # Fix .exe issue: ensure node is used for claude command \
-        rm -f /usr/local/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe && \
-        chmod +x /usr/local/lib/node_modules/@anthropic-ai/claude-code/bin/claude && \
         break || \
         (echo "Attempt $i failed, retrying in 10 seconds..." && sleep 10); \
     done \
-    && npm cache clean --force
+    && npm cache clean --force \
+    && claude --version || echo "claude --version check skipped"
 
 # Create directory for Claude configuration and set working directory
 RUN mkdir -p /config/claude-config

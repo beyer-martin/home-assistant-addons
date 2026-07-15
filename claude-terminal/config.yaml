@@ -1,7 +1,7 @@
 ---
 name: "Claude Terminal"
 description: "Claude Code with Remote Control for mobile access and Home Assistant MCP integration"
-version: "2.0.0"
+version: "2.0.1"
 slug: "claude_terminal"
 init: false
 

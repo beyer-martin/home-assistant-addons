@@ -35,6 +35,9 @@ init_environment() {
     export ANTHROPIC_CONFIG_DIR="$claude_config_dir"
     export ANTHROPIC_HOME="/data"
 
+    # Alpine/musl: use system ripgrep instead of the bundled glibc-only one
+    export USE_BUILTIN_RIPGREP=0
+
     # Migrate any existing authentication files from legacy locations
     migrate_legacy_auth_files "$claude_config_dir"
 
@@ -149,7 +152,7 @@ get_claude_launch_command() {
         # Remote Control mode: Start Claude in server mode for mobile access
         bashio::log.info "Remote Control mode enabled - starting Claude server..."
 
-        local cmd="clear && echo '═══════════════════════════════════════════════════' && echo '🚀 Claude Code Remote Control Server' && echo '═══════════════════════════════════════════════════' && echo '' && echo 'Starting Remote Control server...' && echo '' && echo '📱 You can connect from:' && echo '   • Claude mobile app (scan QR code)' && echo '   • Browser: claude.ai/code' && echo '' && echo '⚠️  Requirements:' && echo '   • Pro/Max/Team/Enterprise subscription' && echo '   • OAuth authentication (run /login if needed)' && echo '' && echo 'Press spacebar to show/hide QR code' && echo '═══════════════════════════════════════════════════' && echo '' && sleep 2 && node \$(which claude) remote-control"
+        local cmd="clear && echo '═══════════════════════════════════════════════════' && echo '🚀 Claude Code Remote Control Server' && echo '═══════════════════════════════════════════════════' && echo '' && echo 'Starting Remote Control server...' && echo '' && echo '📱 You can connect from:' && echo '   • Claude mobile app (scan QR code)' && echo '   • Browser: claude.ai/code' && echo '' && echo '⚠️  Requirements:' && echo '   • Pro/Max/Team/Enterprise subscription' && echo '   • OAuth authentication (run /login if needed)' && echo '' && echo 'Press spacebar to show/hide QR code' && echo '═══════════════════════════════════════════════════' && echo '' && sleep 2 && claude remote-control"
 
         # Add session name if provided
         if [ -n "$session_name" ]; then
@@ -160,7 +163,7 @@ get_claude_launch_command() {
     else
         # Interactive mode: Normal Claude terminal
         bashio::log.info "Interactive mode - starting Claude terminal..."
-        echo "clear && echo '═══════════════════════════════════════════════════' && echo '🤖 Claude Code Terminal' && echo '═══════════════════════════════════════════════════' && echo '' && echo 'Welcome to Claude Code!' && echo '' && echo 'Starting Claude...' && echo '' && sleep 1 && node \$(which claude)"
+        echo "clear && echo '═══════════════════════════════════════════════════' && echo '🤖 Claude Code Terminal' && echo '═══════════════════════════════════════════════════' && echo '' && echo 'Welcome to Claude Code!' && echo '' && echo 'Starting Claude...' && echo '' && sleep 1 && claude"
     fi
 }
 

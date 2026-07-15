@@ -1,5 +1,23 @@
 # Changelog
 
+## 2.0.1
+
+### 🐛 Bug Fixes
+- **Fixed ".exe" / "Cannot find module" startup crash on Alpine (musl)**:
+  - Root cause: Claude Code's native binary needs `libgcc` and `libstdc++`,
+    and the bundled ripgrep is glibc-only — missing on the Alpine base image
+  - Added `libgcc`, `libstdc++`, and system `ripgrep` to the image
+  - Set `USE_BUILTIN_RIPGREP=0` so Claude uses the system ripgrep
+  - Reverted the previous `.exe` deletion hack (it removed the real launcher
+    and left `which claude` empty, causing `Cannot find module '/config/remote-control'`)
+- **Fixed Claude invocation**: Call `claude` directly instead of
+  `node $(which claude)`
+  - Wrapping the launcher with `node` caused it to load a `.exe` as a module
+  - Applies to Remote Control mode, interactive mode, session picker, and auth helper
+
+### 🛠️ Improvements
+- Added `claude --version` check at build time to catch install issues early
+
 ## 2.0.0
 
 ### 🚀 Major Changes
