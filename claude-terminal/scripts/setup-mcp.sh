@@ -191,37 +191,39 @@ create_mcp_config() {
 
     bashio::log.info "Creating MCP configuration at ${MCP_CONFIG_FILE}..."
 
-    # Create the .mcp.json configuration
-    # Claude Code requires stdio transport, so we use mcp-remote for SSE-to-stdio bridge
-    # mcp-remote connects to SSE endpoints and provides stdio interface
-    # Use environment variable for token to avoid header parsing issues
+    # Create the .mcp.json configuration.
+    #
+    # Claude Code has NATIVE support for remote MCP servers over SSE, so we
+    # connect directly to Home Assistant's SSE endpoint. Do NOT reintroduce
+    # the old mcp-remote bridge: mcp-remote 0.1.29 on Node 20 crashes with
+    # "Key Symbol(headers list) in undefined.headers is a symbol, which cannot
+    # be converted to a ByteString" (a bug in its bundled EventSource passing
+    # headers through undici). It was only ever a shim for clients WITHOUT
+    # remote-MCP support, which Claude Code already has. The HA endpoint itself
+    # is fine (200 + text/event-stream).
+    #
+    # Note: the "env" block only applies to stdio servers, so for type "sse"
+    # the token must be written literally into "headers" (done here by bash).
     cat > "$MCP_CONFIG_FILE" <<EOF
 {
   "mcpServers": {
     "home-assistant": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "mcp-remote@^0.1.16",
-        "${url}",
-        "--allow-http",
-        "--header",
-        "Authorization: Bearer \${HA_MCP_TOKEN}"
-      ],
-      "env": {
-        "HA_MCP_TOKEN": "${token}"
+      "type": "sse",
+      "url": "${url}",
+      "headers": {
+        "Authorization": "Bearer ${token}"
       }
     }
   }
 }
 EOF
 
-    # Set appropriate permissions
-    chmod 644 "$MCP_CONFIG_FILE"
+    # The file contains a bearer token, so restrict permissions
+    chmod 600 "$MCP_CONFIG_FILE"
 
     bashio::log.info "✓ MCP configuration created successfully"
     bashio::log.info "  - Server: home-assistant"
-    bashio::log.info "  - Transport: stdio via mcp-proxy (SSE bridge)"
+    bashio::log.info "  - Transport: native SSE (no bridge)"
     bashio::log.info "  - SSE URL: ${url}"
     bashio::log.info ""
     bashio::log.info "You can now use Home Assistant tools in Claude Code!"

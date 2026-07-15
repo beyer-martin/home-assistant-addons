@@ -1,5 +1,26 @@
 # Changelog
 
+## 2.1.1
+
+### 🐛 Bug Fixes
+- **MCP: use Claude Code's native SSE transport instead of the mcp-remote bridge**:
+  - `.mcp.json` now connects directly to Home Assistant's SSE endpoint with
+    `"type": "sse"` — no `npx`/`mcp-remote` intermediary
+  - Fixes the crash `Key Symbol(headers list) in undefined.headers is a symbol,
+    which cannot be converted to a ByteString` — a bug in mcp-remote 0.1.29's
+    bundled EventSource passing headers through undici on Node 20 (updating
+    doesn't help; 0.1.29 is the latest on that branch)
+  - mcp-remote was only ever a shim for clients without remote-MCP support,
+    which Claude Code already has natively; the HA endpoint always responded
+    correctly (200 + `text/event-stream`)
+
+### 🔒 Security
+- Tighten `.mcp.json` permissions to `600` (it contains a bearer token)
+
+### 📝 Notes
+- The `env` block only applies to stdio MCP servers; for `type: sse` the token
+  is written directly into the request `headers`
+
 ## 2.1.0
 
 ### 🚀 Features
