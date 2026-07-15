@@ -20,17 +20,15 @@ show_menu() {
     echo "  3) 📋 Resume from conversation list (-r)"
     echo "  4) ⚙️  Custom Claude command (manual flags)"
     echo "  5) 🔐 Authentication helper (if paste doesn't work)"
-    echo "  6) 📱 Launch Happy (mobile client with QR code)"
-    echo "  7) 🔄 Start Happy daemon (background service)"
-    echo "  8) 🐚 Drop to bash shell"
-    echo "  9) ❌ Exit"
+    echo "  6) 🐚 Drop to bash shell"
+    echo "  7) ❌ Exit"
     echo ""
 }
 
 get_user_choice() {
     local choice
     # Send prompt to stderr to avoid capturing it with the return value
-    printf "Enter your choice [1-9] (default: 1): " >&2
+    printf "Enter your choice [1-7] (default: 1): " >&2
     read -r choice
 
     # Default to 1 if empty
@@ -85,25 +83,9 @@ launch_auth_helper() {
     exec /opt/scripts/claude-auth-helper.sh
 }
 
-launch_happy() {
-    echo "📱 Starting Happy mobile client..."
-    echo "Scan the QR code with your mobile device to connect."
-    echo ""
-    sleep 1
-    exec happy
-}
-
-launch_happy_daemon() {
-    echo "🔄 Starting Happy daemon..."
-    echo "The daemon will run in background and allow mobile connections."
-    echo ""
-    sleep 1
-    exec happy daemon start
-}
-
 launch_bash_shell() {
     echo "🐚 Dropping to bash shell..."
-    echo "Tip: Run 'claude' or 'happy' manually when ready"
+    echo "Tip: Run 'claude' manually when ready"
     sleep 1
     exec bash
 }
@@ -137,21 +119,15 @@ main() {
                 launch_auth_helper
                 ;;
             6)
-                launch_happy
-                ;;
-            7)
-                launch_happy_daemon
-                ;;
-            8)
                 launch_bash_shell
                 ;;
-            9)
+            7)
                 exit_session_picker
                 ;;
             *)
                 echo ""
                 echo "❌ Invalid choice: '$choice'"
-                echo "Please select a number between 1-9"
+                echo "Please select a number between 1-7"
                 echo ""
                 printf "Press Enter to continue..." >&2
                 read -r

@@ -1,5 +1,57 @@
 # Changelog
 
+## 2.0.0
+
+### 🚀 Major Changes
+- **Remote Control Mode**: Claude Code now runs in server mode for mobile/browser access
+  - Connect from Claude mobile app or claude.ai/code
+  - Scan QR code or use session URL
+  - All execution stays on your Home Assistant machine
+  - Requires Pro/Max/Team/Enterprise subscription and OAuth authentication
+  - Enable in add-on configuration: "Remote Control Mode"
+
+### 🗑️ Breaking Changes
+- **Removed Happy Coder**: Eliminated Happy daemon and all related functionality
+  - Happy was causing installation issues and conflicts
+  - Remote Control provides better mobile access experience
+  - Configuration options removed: `auto_start_happy_daemon`
+  - All Happy-related code and dependencies removed
+
+### 🐛 Bug Fixes
+- **Fixed .exe error on Alpine Linux**: Resolved "ERR_UNKNOWN_FILE_EXTENSION: Unknown file extension .exe"
+  - npm was installing Windows binary (.exe) on Linux system
+  - Now explicitly removes .exe file after installation
+  - Forces use of correct Node.js script
+  - Ensures `node $(which claude)` works correctly
+
+### 🛠️ Improvements
+- **Updated Claude Code**: Latest version with all recent features
+- **Simplified configuration**: Removed confusing auto-launch options
+- **Better startup messages**: Clear indication of Remote Control vs Interactive mode
+- **Environment optimizations**: Removed unused Happy directories
+
+### 📝 Configuration Changes
+- **New options**:
+  - `remote_control_mode`: Enable Remote Control server (default: false)
+  - `session_name`: Custom name for Remote Control session (optional)
+- **Removed options**:
+  - `auto_launch_claude`: No longer needed
+  - `auto_start_happy_daemon`: Happy removed
+
+## 1.5.4
+
+### 🐛 Bug Fixes
+- **Fixed mcp-proxy npm package name**: Resolved "404 Not Found" error when installing mcp-proxy
+  - Changed from incorrect '@homebase-id/mcp-proxy' to correct 'mcp-proxy'
+  - Package is available at npmjs.com/package/mcp-proxy
+  - Properly handles SSE streaming timeout (exit code 28 is normal)
+  - Uses temp file to isolate HTTP status code from streaming data
+
+### 🛠️ Improvements
+- **Added debug script**: New /opt/scripts/debug-mcp.sh for troubleshooting MCP connectivity
+- **Better error handling**: Distinguishes between curl timeout (normal) and connection errors
+- **Debug logging**: Shows both curl exit code and HTTP status code for diagnostics
+
 ## 1.5.3
 
 ### 🐛 Bug Fixes

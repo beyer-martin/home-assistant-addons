@@ -1,10 +1,10 @@
-# Claude Terminal
+# Claude Code
 
-A terminal interface for Anthropic's Claude Code CLI in Home Assistant.
+Claude Code with Remote Control and Home Assistant MCP integration.
 
 ## About
 
-This add-on provides a web-based terminal with Claude Code CLI pre-installed, allowing you to access Claude's powerful AI capabilities directly from your Home Assistant dashboard. The terminal provides full access to Claude's code generation, explanation, and problem-solving capabilities.
+This add-on provides Claude Code CLI with support for Remote Control (mobile/browser access) and automatic integration with Home Assistant via the Model Context Protocol (MCP). Access Claude's powerful AI capabilities directly from your Home Assistant dashboard, or remotely from your mobile device.
 
 ## Installation
 
@@ -18,9 +18,20 @@ This add-on provides a web-based terminal with Claude Code CLI pre-installed, al
 
 ### Basic Configuration
 
-No configuration is needed! The add-on uses OAuth authentication, so you'll be prompted to log in to your Anthropic account the first time you use it.
+**Authentication:**
+- First use: You'll be prompted to log in to your Anthropic account via OAuth
+- Credentials are stored in `/config/claude-config` and persist across restarts
+- No additional configuration needed for basic terminal access
 
-Your OAuth credentials are stored in the `/config/claude-config` directory and will persist across add-on updates and restarts, so you won't need to log in again.
+**Remote Control Mode (Optional):**
+- **Remote Control Mode**: Enable Claude Code server for mobile/browser access
+  - When enabled, displays session URL and QR code
+  - Connect from Claude mobile app or claude.ai/code
+  - Requires Pro/Max/Team/Enterprise subscription
+  - Requires OAuth authentication (use `/login` in terminal if needed)
+- **Session Name**: Optional custom name for your Remote Control session
+  - Makes it easier to identify in the session list
+  - Example: "Home Assistant Server"
 
 ### MCP Integration (Optional)
 
@@ -78,34 +89,50 @@ Once enabled, Claude will have access to Home Assistant tools for querying and c
 
 ## Usage
 
-Claude launches automatically when you open the terminal. You can also start Claude manually with:
+### Interactive Terminal Mode (Default)
+
+When Remote Control is disabled, Claude launches as an interactive terminal:
 
 ```bash
 node /usr/local/bin/claude
 ```
 
-### Common Commands
-
-- `claude -i` - Start an interactive Claude session
+**Common Commands:**
 - `claude --help` - See all available commands
 - `claude "your prompt"` - Ask Claude a single question
 - `claude process myfile.py` - Have Claude analyze a file
-- `claude --editor` - Start an interactive editor session
 - `/mcp` - View connected MCP servers and available tools (when MCP is enabled)
+- `/login` - Authenticate with Claude (OAuth)
+- `/remote-control` - Enable Remote Control from within a session
 
-The terminal starts directly in your `/config` directory, giving you immediate access to all your Home Assistant configuration files. This makes it easy to get help with your configuration, create automations, and troubleshoot issues.
+The terminal starts in your `/config` directory, giving you immediate access to all your Home Assistant configuration files.
 
-### Happy Mobile Client
+### Remote Control Mode
 
-Access Claude from your mobile device using the Happy mobile client:
+Enable **Remote Control Mode** in the add-on configuration to access Claude from your mobile device or browser.
 
-1. From the session picker, choose option **6** to launch Happy with QR code
-2. Scan the QR code with the Happy mobile app
-3. Start coding on your phone with Claude's full capabilities
+**How it works:**
+1. Enable "Remote Control Mode" in add-on configuration
+2. Restart the add-on
+3. Open the web UI - you'll see a session URL and QR code
+4. Press spacebar to show/hide the QR code
 
-You can also run Happy in daemon mode (option **7**) to keep it running in the background for persistent mobile access.
+**Connect from your device:**
+- **Mobile app**: Scan the QR code with Claude mobile app ([iOS](https://apps.apple.com/app/claude-by-anthropic/id6473753684) / [Android](https://play.google.com/store/apps/details?id=com.anthropic.claude))
+- **Browser**: Open the session URL at [claude.ai/code](https://claude.ai/code)
+- **Session list**: Find your session by name in claude.ai/code
 
-Happy authentication is stored in `/data/.config/happy` and persists across add-on restarts.
+**Requirements:**
+- Claude Pro, Max, Team, or Enterprise subscription
+- OAuth authentication (not API key)
+- Use `/login` in terminal if not authenticated
+
+**Features:**
+- Full local environment access (filesystem, MCP servers, tools)
+- Work from both terminal and mobile/browser simultaneously
+- Send images and files from your phone
+- Survives network interruptions and reconnects automatically
+- All execution stays on your Home Assistant machine
 
 ### Using MCP Tools
 
@@ -122,14 +149,16 @@ Claude will automatically use the appropriate MCP tools to interact with your Ho
 ## Features
 
 - **Web Terminal**: Access a full terminal environment via your browser
-- **Auto-Launching**: Claude starts automatically when you open the terminal
+- **Remote Control**: Connect from mobile app or browser at claude.ai/code
+- **QR Code Access**: Quick mobile pairing with QR code (press spacebar)
 - **Claude AI**: Access Claude's AI capabilities for programming, troubleshooting and more
-- **Happy Mobile Client**: Connect to Claude from your mobile device with QR code pairing
 - **Direct Config Access**: Terminal starts in `/config` for immediate access to all Home Assistant files
-- **Simple Setup**: Uses OAuth for easy authentication
+- **OAuth Authentication**: Simple and secure authentication
 - **Home Assistant Integration**: Access directly from your dashboard
 - **Persistent Authentication**: All credentials stored securely and persist across restarts
-- **MCP Integration**: Optional automatic connection to Home Assistant MCP Server for direct smart home control through Claude
+- **MCP Integration**: Automatic connection to Home Assistant MCP Server for direct smart home control
+- **Mobile & Browser Sync**: Work from multiple devices simultaneously with synchronized conversation
+- **Local Execution**: All code execution and file access stays on your machine
 
 ## Troubleshooting
 

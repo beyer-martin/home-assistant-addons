@@ -18,13 +18,9 @@ RUN apk add --no-cache \
         echo "Attempt $i: Installing Claude Code CLI..." && \
         npm install -g @anthropic-ai/claude-code@latest && \
         echo "Successfully installed Claude Code CLI" && \
-        break || \
-        (echo "Attempt $i failed, retrying in 10 seconds..." && sleep 10); \
-    done \
-    && for i in 1 2 3; do \
-        echo "Attempt $i: Installing Happy Coder CLI..." && \
-        npm install -g happy-coder && \
-        echo "Successfully installed Happy Coder CLI" && \
+        # Fix .exe issue: ensure node is used for claude command \
+        rm -f /usr/local/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe && \
+        chmod +x /usr/local/lib/node_modules/@anthropic-ai/claude-code/bin/claude && \
         break || \
         (echo "Attempt $i failed, retrying in 10 seconds..." && sleep 10); \
     done \

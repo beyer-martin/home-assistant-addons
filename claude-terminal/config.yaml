@@ -1,7 +1,7 @@
 ---
 name: "Claude Terminal"
-description: "Terminal interface for Claude Code CLI with mobile support and Home Assistant MCP integration"
-version: "1.5.3"
+description: "Claude Code with Remote Control for mobile access and Home Assistant MCP integration"
+version: "2.0.0"
 slug: "claude_terminal"
 init: false
 
@@ -29,12 +29,12 @@ ports_description:
 
 # Add-on configuration options
 options:
-  auto_launch_claude:
-    name: "Auto-launch Claude"
-    description: "Auto-start Claude on terminal open (disable for session picker)"
-  auto_start_happy_daemon:
-    name: "Auto-start Happy Daemon"
-    description: "Automatically start Happy daemon in background for mobile connections"
+  remote_control_mode:
+    name: "Remote Control Mode"
+    description: "Enable Remote Control server for mobile access (requires Pro/Max/Team/Enterprise subscription)"
+  session_name:
+    name: "Session Name"
+    description: "Custom name for Remote Control session (optional)"
   enable_mcp_integration:
     name: "Enable MCP Integration"
     description: "Auto-configure connection to Home Assistant MCP Server"
@@ -45,8 +45,8 @@ options:
     name: "MCP Server URL"
     description: "Override MCP server URL (default: auto-discover). Example: http://homeassistant.local:8123/mcp_server/sse"
 schema:
-  auto_launch_claude: bool?
-  auto_start_happy_daemon: bool?
+  remote_control_mode: bool?
+  session_name: str?
   enable_mcp_integration: bool?
   mcp_access_token: password?
   mcp_server_url: str?

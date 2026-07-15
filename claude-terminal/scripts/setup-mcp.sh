@@ -123,16 +123,40 @@ test_mcp_server() {
 
     bashio::log.info "Testing MCP server connectivity..."
 
-    # Try to connect to the MCP server endpoint with auth
+    # SSE endpoints stream continuously, so curl will timeout (exit 28).
+    # We need to check the HTTP status code, not curl's exit code.
+    # Write status code to a temp file to avoid capturing streaming data
+
+    local status_file="/tmp/mcp_status_$$"
     local response
-    response=$(curl -s -w "%{http_code}" -o /dev/null \
+
+    # Run curl with timeout, discard body, save status code to file
+    # Exit code 28 (timeout) is expected for SSE endpoints
+    timeout 3 curl -s -o /dev/null -w "%{http_code}" \
+        --max-time 2 \
         -H "Authorization: Bearer ${token}" \
         -H "Accept: text/event-stream" \
-        --max-time 5 \
-        "$url" 2>/dev/null || echo "000")
+        "$url" > "$status_file" 2>/dev/null
 
+    # curl exit codes: 0=success, 28=timeout, others=error
+    local curl_exit=$?
+
+    # Read the status code from file
+    if [ -f "$status_file" ]; then
+        response=$(cat "$status_file")
+        rm -f "$status_file"
+    else
+        response="000"
+    fi
+
+    # Clean up - keep only first 3 digits
+    response=$(echo "$response" | tr -cd '0-9' | head -c 3)
+
+    bashio::log.debug "Curl exit code: $curl_exit, HTTP status: '$response'"
+
+    # For SSE, timeout (exit 28) with HTTP 200 is success
     if [ "$response" = "200" ]; then
-        bashio::log.info "✓ MCP server is accessible and authenticated (HTTP $response)"
+        bashio::log.info "✓ MCP server is accessible and authenticated (HTTP 200)"
         return 0
     elif [ "$response" = "401" ]; then
         bashio::log.error "✗ MCP server authentication failed (HTTP 401)"
@@ -140,15 +164,22 @@ test_mcp_server() {
         bashio::log.error "Please create a new long-lived access token and update the add-on configuration"
         return 1
     elif [ "$response" = "404" ]; then
-        bashio::log.warning "MCP server returned HTTP $response"
+        bashio::log.warning "MCP server returned HTTP 404"
         bashio::log.warning "The MCP Server integration may not be installed or the endpoint URL is incorrect"
         bashio::log.warning "Please ensure:"
         bashio::log.warning "  1. Home Assistant 2025.2 or later is installed"
         bashio::log.warning "  2. The 'Model Context Protocol Server' integration is added"
         bashio::log.warning "  3. The integration is properly configured"
         return 1
+    elif [ -z "$response" ] || [ "$response" = "000" ]; then
+        bashio::log.warning "Could not connect to MCP server"
+        if [ $curl_exit -ne 28 ]; then
+            bashio::log.warning "Curl error code: $curl_exit"
+        fi
+        bashio::log.warning "Check that Home Assistant is running and accessible"
+        return 1
     else
-        bashio::log.warning "MCP server returned unexpected HTTP $response"
+        bashio::log.warning "MCP server returned unexpected HTTP $response (curl exit: $curl_exit)"
         return 1
     fi
 }
@@ -161,8 +192,9 @@ create_mcp_config() {
     bashio::log.info "Creating MCP configuration at ${MCP_CONFIG_FILE}..."
 
     # Create the .mcp.json configuration
-    # Claude Code requires stdio transport, so we use npx @homebase-id/mcp-proxy for SSE
-    # This bridges between Claude's stdio and Home Assistant's SSE endpoint
+    # Claude Code requires stdio transport, so we use mcp-remote for SSE-to-stdio bridge
+    # mcp-remote connects to SSE endpoints and provides stdio interface
+    # Use environment variable for token to avoid header parsing issues
     cat > "$MCP_CONFIG_FILE" <<EOF
 {
   "mcpServers": {
@@ -170,11 +202,14 @@ create_mcp_config() {
       "command": "npx",
       "args": [
         "-y",
-        "@homebase-id/mcp-proxy"
+        "mcp-remote@^0.1.16",
+        "${url}",
+        "--allow-http",
+        "--header",
+        "Authorization: Bearer \${HA_MCP_TOKEN}"
       ],
       "env": {
-        "SSE_URL": "${url}",
-        "API_ACCESS_TOKEN": "${token}"
+        "HA_MCP_TOKEN": "${token}"
       }
     }
   }
