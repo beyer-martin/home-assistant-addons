@@ -1,6 +1,6 @@
-# Claude Terminal for Home Assistant
+# Claude Code for Home Assistant
 
-This repository contains a custom add-on that integrates Anthropic's Claude Code CLI with Home Assistant.
+This repository contains a custom add-on that integrates Anthropic's Claude Code CLI with Home Assistant, featuring Remote Control for mobile access and automatic MCP integration.
 
 ## Installation
 
@@ -14,26 +14,32 @@ To add this repository to your Home Assistant instance:
 
 ## Add-ons
 
-### Claude Terminal
+### Claude Code
 
-A web-based terminal interface with Claude Code CLI pre-installed. This add-on provides a terminal environment directly in your Home Assistant dashboard, allowing you to use Claude's powerful AI capabilities for coding, automation, and configuration tasks.
+Claude Code with Remote Control and Home Assistant integration. Access Claude's AI capabilities from your dashboard, or remotely from your mobile device.
 
-Features:
-- Web terminal access through your Home Assistant UI
-- Pre-installed Claude Code CLI that launches automatically
-- Happy mobile client support for coding on your phone
-- Direct access to your Home Assistant config directory
-- No configuration needed (uses OAuth)
-- Persistent authentication across restarts
-- Optional MCP integration for direct Home Assistant control
-- Access to Claude's complete capabilities including:
-  - Code generation and explanation
-  - Debugging assistance
-  - Home Assistant automation help
-  - Smart home control via MCP
-  - Learning resources
+**Features:**
+- **Remote Control**: Connect from Claude mobile app or claude.ai/code
+- **QR Code Access**: Quick mobile pairing (press spacebar to show QR)
+- **Web Terminal**: Full terminal environment in your Home Assistant UI
+- **MCP Integration**: Automatic connection to Home Assistant for smart home control
+- **OAuth Authentication**: Simple and secure login
+- **Persistent Sessions**: Credentials and sessions survive restarts
+- **Direct Config Access**: Terminal starts in `/config` directory
+- **Multi-Device Support**: Work from terminal, browser, and mobile simultaneously
 
-[Documentation](claude-terminal/DOCS.md)
+**What you can do:**
+- Code generation and explanation
+- Debug Home Assistant issues
+- Create and modify automations
+- Control smart home devices via MCP
+- Access from anywhere with Remote Control
+
+**Requirements for Remote Control:**
+- Claude Pro, Max, Team, or Enterprise subscription
+- OAuth authentication (not API key)
+
+[Full Documentation](claude-terminal/DOCS.md)
 
 ## Support
 
